@@ -20,17 +20,22 @@ txt_path = './data/preprocessed/train/sentences.txt'
 
 with open(txt_path,'r', encoding="utf8") as in_file:    #encoding for windows
     my_text = in_file.read()
-
+    
+    #to remove new lines and additional initial/ending spaces
+    my_text = my_text.rstrip('\n') 
+    my_text= my_text.replace('\n', '')  
+    
 # Number of tokens (with nltk):
-    tokens = nltk.word_tokenize(my_text)
+    tokens_nltk = nltk.word_tokenize(my_text)
     #print(tokens)
-    num_tokens = len(tokens) 
-    print('Total of tokens (without /n):', num_tokens)    #15214
+    num_tokens_nltk = len(tokens_nltk) 
+    print('Total of tokens (without \n):', num_tokens_nltk)    #14621
 
 # Number of tokens (with spacy):
     doc= nlp(my_text)
-    tokens1=[token.text for token in doc]
-    print('Number of tokens (with /n):', len(tokens1))   #16130 it's more because it takes into account \n?   
+    tokens=[token.text for token in doc]
+    #print(tokens1)
+    print('Number of tokens (without \n):', len(tokens))   #14806 it's more than the amount found with nltk  
 
 # Number of types:
     unique_tokens1= set(tokens) 
