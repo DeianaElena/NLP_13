@@ -66,24 +66,136 @@ print('Average word length:', np.mean(list_l_words))
 ##########################################################################
 
 # Task 2 (Ouail):
+#Tokens
 tokens = []
 for token in nltk.word_tokenize(my_text):
     tokens.append(token)
-    
+
+# Finegrained POS-tag    
 FG = []
 for token in pos_tag(nltk.word_tokenize(my_text)):
     FG.append(token)
-    
+
+# Universal POS-tag    
 Universal = []
 for token in pos_tag(nltk.word_tokenize(my_text), tagset='universal') :
     Universal.append(token)
+    
+#Create df 
+df = pd.DataFrame(FG, columns =['Token', 'FG_POS'])
+df1 = pd.DataFrame(Universal, columns =['Token', 'Universal_POS'])
+WC = df.merge(df1, left_index=True, right_index=True)
+
+WC = WC.drop(['Token_y'], axis=1)
+WC = WC.rename({'Token_x':'Token'}, axis=1)
+
+WC_table = WC.groupby(['FG_POS', 'Universal_POS']).size().reset_index(name='Occurrences')
+WC_table['Relative Tag Frequency (%)'] = round(WC_table['Occurrences']/WC_table['Occurrences'].sum() * 100,2)
+#sort
+WC_table = WC_table.sort_values( by="Occurrences", ascending=False)
+#get top 10
+WC_table = WC_table.nlargest(n=10, columns=['Occurrences'])
+
+
+#Extract most occuring POS
+WC_most_occ = WC_table[['FG_POS', 'Universal_POS']]
+new_df = pd.merge(WC_most_occ, WC, on =['FG_POS', 'Universal_POS'])
+new_df = new_df.groupby(['FG_POS', 'Universal_POS', 'Token']).size()
+
+most_frequent = new_df.groupby(['FG_POS', 'Universal_POS']).nlargest(3)
+infrequent = new_df.groupby(['FG_POS', 'Universal_POS']).nsmallest(1)
 ##########################################################################
 
-# Task 3:
+# Task 3 N-grams (Ouail):
+from nltk.util import bigrams, trigrams, ngrams
+
+token = nltk.word_tokenize(my_text)
+POS = pos_tag(nltk.word_tokenize(my_text), tagset='universal')
+
+token_bigrams = list(nltk.bigrams(token))
+token_trigrams = list(nltk.trigrams(token))
+              
+POS_bigrams = list(nltk.bigrams(POS))
+POS_trigrams = list(nltk.trigrams(POS))
+
+
+
+token_bigrams_df = pd.DataFrame(token_bigrams, columns =['BiGram', 'BiGram_2'])
+token_trigrams_df = pd.DataFrame(token_trigrams, columns =['TriGram', 'TriGram_2', 'TriGram_3'])
+
+POS_bigrams_df = pd.DataFrame(POS_bigrams, columns =['BiGram', 'BiGram_2'])
+POS_trigrams_df = pd.DataFrame(POS_trigrams, columns =['TriGram', 'TriGram_2', 'TriGram_3'])
+
+
+POS_bigrams_df[['BiGram1', 'BiGram2']] = pd.DataFrame(POS_bigrams_df['BiGram'].tolist(), index=POS_bigrams_df.index)
+POS_bigrams_df[['BiGram_21', 'BiGram_22']] = pd.DataFrame(POS_bigrams_df['BiGram_2'].tolist(), index=POS_bigrams_df.index)
+POS_bigrams_df = POS_bigrams_df.drop(['BiGram','BiGram_2','BiGram1','BiGram_21',], axis=1)
+
+
+POS_trigrams_df[['TriGram1', 'TriGram2']] = pd.DataFrame(POS_trigrams_df['TriGram'].tolist(), index=POS_trigrams_df.index)
+POS_trigrams_df[['TriGram_21', 'TriGram_22']] = pd.DataFrame(POS_trigrams_df['TriGram_2'].tolist(), index=POS_trigrams_df.index)
+POS_trigrams_df[['TriGram_31', 'TriGram_32']] = pd.DataFrame(POS_trigrams_df['TriGram_3'].tolist(), index=POS_trigrams_df.index)
+POS_trigrams_df = POS_trigrams_df.drop(['TriGram','TriGram_2','TriGram_3', 'TriGram1', 'TriGram_21','TriGram_31'], axis=1)
+
+
+
+token_bigrams_df['BiGram'] = token_bigrams_df[['BiGram', 'BiGram_2']].agg(', '.join, axis=1)
+token_trigrams_df['TriGram'] = token_trigrams_df[['TriGram', 'TriGram_2', 'TriGram_3']].apply(
+    lambda x: ','.join(x.dropna().astype(str)),
+    axis=1)
+
+POS_bigrams_df['BiGram'] = POS_bigrams_df[['BiGram2', 'BiGram_22']].agg(', '.join, axis=1)
+POS_trigrams_df['TriGram'] = POS_trigrams_df[['TriGram2', 'TriGram_22', 'TriGram_32']].apply(
+    lambda x: ','.join(x.dropna().astype(str)),
+    axis=1)
+
+token_bigrams_df = token_bigrams_df.drop(['BiGram_2'], axis=1)
+token_trigrams_df = token_trigrams_df.drop(['TriGram_2', "TriGram_3"], axis=1)
+POS_bigrams_df = POS_bigrams_df.drop(['BiGram2','BiGram_22'], axis=1)
+POS_trigrams_df = POS_trigrams_df.drop(['TriGram2','TriGram_22', "TriGram_32"], axis=1)
+
+token_bigrams_df = token_bigrams_df['BiGram'].reset_index()
+token_trigrams_df = token_trigrams_df['TriGram'].reset_index()
+POS_bigrams_df = POS_bigrams_df['BiGram'].reset_index()
+POS_trigrams_df = POS_trigrams_df['TriGram'].reset_index()
+
+token_bigrams_df = token_bigrams_df.drop('index', 1)
+token_trigrams_df = token_trigrams_df.drop('index', 1)
+
+POS_bigrams_df = POS_bigrams_df.drop('index', 1)
+POS_trigrams_df = POS_trigrams_df.drop('index', 1)
+
+#top 3's
+token_bigrams_df['BiGram'].value_counts()
+token_trigrams_df['TriGram'].value_counts()
+POS_bigrams_df['BiGram'].value_counts()
+POS_trigrams_df['TriGram'].value_counts()
 
 ##########################################################################
 
-# Task 4:
+# Task 4 Lemmatization (Ouail):
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet 
+
+
+lemma = []
+for token, POStag in pos_tag(word_tokenize(my_text)):
+    if POStag.startswith('N'):
+        lemma.append(WordNetLemmatizer().lemmatize(token, wordnet.NOUN))
+    elif POStag.startswith('V'):
+        lemma.append(WordNetLemmatizer().lemmatize(token, wordnet.VERB))
+    elif POStag.startswith("J"):
+        lemma.append(WordNetLemmatizer().lemmatize(token, wordnet.ADJ))
+    elif POStag.startswith('R'):
+        lemma.append(WordNetLemmatizer().lemmatize(token, wordnet.ADV))
+    else:
+        lemma.append(token)
+        
+df = pd.DataFrame(tokens, columns =['Token'])
+df1 = pd.DataFrame(lemma, columns =['Lemma'])
+lemma_df = df.merge(df1, left_index=True, right_index=True)
+
 
 ##########################################################################
 
