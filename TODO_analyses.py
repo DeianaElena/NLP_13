@@ -65,8 +65,18 @@ print('Average word length:', np.mean(list_l_words))
 
 ##########################################################################
 
-# Task 2:
-
+# Task 2 (Ouail):
+tokens = []
+for token in nltk.word_tokenize(my_text):
+    tokens.append(token)
+    
+FG = []
+for token in pos_tag(nltk.word_tokenize(my_text)):
+    FG.append(token)
+    
+Universal = []
+for token in pos_tag(nltk.word_tokenize(my_text), tagset='universal') :
+    Universal.append(token)
 ##########################################################################
 
 # Task 3:
