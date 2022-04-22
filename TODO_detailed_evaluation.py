@@ -34,7 +34,7 @@ def process_output(test_input):
 
 
 if __name__ == '__main__':
-    path = "/Users/ozogari/Ouail Zogari/School/VU/Master/AI (jaar 2)/Periode 5/NLP Technology/Group Assignments/NLP_13-main/experiments/base_model/"
+    path = "/experiments/base_model/"
 
     # Note: this loads all instances into memory. If you work with bigger files in the future, use an iterator instead.
 
