@@ -1,7 +1,6 @@
 # %%
 # File: data/preprocessed/train/sentences.txt 
 # Model: en_core_web_sm.
-
 # Import packages
 import os
 import numpy as np
@@ -9,8 +8,16 @@ import torch
 import tabulate
 from tqdm import tqdm
 import nltk
+import pandas as pd
+import csv
 import spacy  
 from collections import Counter
+
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
+from nltk.corpus import brown
+from nltk.tag import UnigramTagger
+import itertools 
 
 # Part A
 # Task 1: Tokenization   (Elena)
