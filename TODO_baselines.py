@@ -1,3 +1,5 @@
+#%%
+# Import packages
 from model.data_loader import DataLoader
 import spacy 
 import os
@@ -9,13 +11,40 @@ import wordfreq
 from scipy import stats
 from wordfreq.tokens import tokenize, simple_tokenize
 from wordfreq import word_frequency
-from nltk import pos_tag
+import nltk
+import torch
+import tabulate
+from tqdm import tqdm
+import csv
+from collections import Counter
+import random
+from nltk.tag import pos_tag, UnigramTagger
+from nltk.tokenize import word_tokenize
+from nltk.corpus import brown
+from sklearn import metrics
+import itertools 
+from itertools import chain
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-#Task 8 
+import warnings
+warnings.filterwarnings('ignore')   #to ignore the warning we would get otherwise
+
+########### Task 7
+nlp = spacy.load('en_core_web_sm')
 df_header= ['ID', 'sentence', 'start', 'end', 'target_word', 'num_native', 'num_non-native',
              'native_difficult', 'non-native_difficult', 'binary', 'probabilistic_class']  #as described here https://sites.google.com/view/cwisharedtask2018/datasets
-
 df_train = pd.read_csv('data/original/english/WikiNews_Train.tsv', sep='\t', names=df_header)
+
+new_df1 = df_train.iloc[:,[4,9,10]]
+print(new_df1['binary'].value_counts())   #Number of instances labeled with 0 and 1
+
+print(df_train['probabilistic_class'].describe()) #probabilistic label's characteristics (Min, max, median, mean, and stdev)
+
+print(len(df_train[df_train['target_word'].str.split(" ").apply(len) > 1]))  # Number of instances consisting of more than one token
+print(df_train['target_word'].str.split(" ").apply(len).max() ) # Maximum number of tokens for an instance
+
+
+###########Task 8 
 
 #The 10th and 11th columns show the gold-standard label for the binary and probabilistic classification tasks.
 new_df = df_train[(df_train['binary'] != 0) & (df_train['target_word'].str.split(" ").apply(len) == 1)]   #data frame with only complex token and to include only tokens with one word
@@ -78,33 +107,6 @@ plt.show()
 # Frequency baseline: determines the class based on a frequency threshold
 
 # Each baseline returns predictions for the test data. The length and frequency baselines determine a threshold using the development data.
-
-
-
-# Import packages
-import os
-import numpy as np
-import torch
-import tabulate
-from tqdm import tqdm
-import nltk
-import pandas as pd
-import csv
-import spacy  
-from collections import Counter
-import random
-
-from nltk.tag import pos_tag
-from nltk.tokenize import word_tokenize
-from nltk.corpus import brown
-from sklearn import metrics
-from nltk.tag import UnigramTagger
-import itertools 
-from itertools import chain
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-
 
 def majority_baseline(train_sentences, train_labels, testinput, testlabels):
     predictions = []
@@ -185,7 +187,7 @@ def random_baseline(train_sentence, train_labels, testinput, testlabels):
     return cm
   
   
-  def length_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 8):
+def length_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 8):
     
     word = []
     predictions = []
@@ -212,18 +214,18 @@ def random_baseline(train_sentence, train_labels, testinput, testlabels):
         instances = [val for sublist in instances for val in sublist]
         
 
-    # TODO: calculate accuracy for the test input
+    #calculate accuracy for the test input
     cm = classification_report(instances, predictions, digits = 2)
     
     return cm
 
   
- def frequency_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 25):
+def frequency_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 25):
     
     word = []
     predictions = []
     
-    # TODO: determine the random class based on the training data
+    #determine the random class based on the training data
     for label in train_labels:
         label = label.replace("\n","")
         for s in label.split(" "):
@@ -258,7 +260,6 @@ def random_baseline(train_sentence, train_labels, testinput, testlabels):
 
     # TODO: calculate accuracy for the test input
     cm = classification_report(instances, predictions, digits = 2)
-    
     return cm
 
 
@@ -297,7 +298,6 @@ if __name__ == '__main__':
     validation_CM_length = length_baseline(train_sentences, train_labels, val_sentences, val_labels)
     validation_CM_frequency = frequency_baseline(train_sentences, train_labels, val_sentences, val_labels)
 
-    # TODO: output the predictions in a suitable way so that you can evaluate them
-
+    #output the predictions in a suitable way so that you can evaluate them
 
 
