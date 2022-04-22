@@ -70,6 +70,7 @@ tokens = []
 for token in nltk.word_tokenize(my_text):
     tokens.append(token)
 print(len(tokens))
+
 # Finegrained POS-tag    
 FG = []
 for token in pos_tag(nltk.word_tokenize(my_text)):
@@ -87,6 +88,7 @@ WC = df.merge(df1, left_index=True, right_index=True)
 
 WC = WC.drop(['Token_y'], axis=1)
 WC = WC.rename({'Token_x':'Token'}, axis=1)
+print(WC)
 
 WC_table = WC.groupby(['FG_POS', 'Universal_POS']).size().reset_index(name='Occurrences')
 WC_table['Relative Tag Frequency (%)'] = round(WC_table['Occurrences']/WC_table['Occurrences'].sum() * 100,2)
@@ -101,7 +103,10 @@ new_df = pd.merge(WC_most_occ, WC, on =['FG_POS', 'Universal_POS'])
 new_df = new_df.groupby(['FG_POS', 'Universal_POS', 'Token']).size()
 
 most_frequent = new_df.groupby(['FG_POS', 'Universal_POS']).nlargest(3)
+print(most_frequent)
 infrequent = new_df.groupby(['FG_POS', 'Universal_POS']).nsmallest(1)
+print(infrequent)
+print(WC_table)
 ##########################################################################
 
 # Task 3 N-grams
@@ -140,6 +145,7 @@ POS_bigrams_df['BiGram'] = POS_bigrams_df[['BiGram2', 'BiGram_22']].agg(', '.joi
 POS_trigrams_df['TriGram'] = POS_trigrams_df[['TriGram2', 'TriGram_22', 'TriGram_32']].apply(
     lambda x: ','.join(x.dropna().astype(str)),
     axis=1)
+print(token_trigrams_df)
 
 token_bigrams_df = token_bigrams_df.drop(['BiGram_2'], axis=1)
 token_trigrams_df = token_trigrams_df.drop(['TriGram_2', "TriGram_3"], axis=1)
@@ -158,11 +164,10 @@ POS_bigrams_df = POS_bigrams_df.drop('index', 1)
 POS_trigrams_df = POS_trigrams_df.drop('index', 1)
 
 #top 3's
-token_bigrams_df['BiGram'].value_counts()
-token_trigrams_df['TriGram'].value_counts()
-POS_bigrams_df['BiGram'].value_counts()
-POS_trigrams_df['TriGram'].value_counts()
-
+print(token_bigrams_df['BiGram'].value_counts())
+print(token_trigrams_df['TriGram'].value_counts())
+print(POS_bigrams_df['BiGram'].value_counts())
+print(POS_trigrams_df['TriGram'].value_counts())
 ##########################################################################
 
 # Task 4 Lemmatization
@@ -182,7 +187,8 @@ for token, POStag in pos_tag(word_tokenize(my_text)):
 df = pd.DataFrame(tokens, columns =['Token'])
 df1 = pd.DataFrame(lemma, columns =['Lemma'])
 lemma_df = df.merge(df1, left_index=True, right_index=True)
-
+print(lemma_df)
+print(lemma.loc[lemma_df['Token']== 'challenge'])
 ##########################################################################
 
 # Task 5: Named Entity Recognition 
