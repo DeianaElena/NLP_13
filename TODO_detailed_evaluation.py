@@ -52,7 +52,12 @@ if __name__ == '__main__':
         'epoch': [1,5,10,15,25, 40,50],
         'F1 weighted average': [0.70, 0.82,0.84,0.84,0.84,0.84,0.84],
         }
+    data2 = {
+        'embedding dimension': [5,20,50,100,200,400,800],
+        'F1 weighted average': [0.70, 0.82,0.84,0.84,0.85,0.86,0.84],
+        } 
 
     df = pd.DataFrame(data)
-    print(df)
-    df.plot.line()
+    df1 = pd.DataFrame(data2)
+    df.plot.line(x='epoch', y='F1 weighted average')
+    df1.plot.line(x='embedding dimension', y='F1 weighted average')
