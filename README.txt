@@ -1,3 +1,19 @@
+group 13
+
+Student 1
+Name: Elena Deiana
+Student id: 2749820
+
+Student 2
+Name: M.I. Gherghina Tudor
+Student id: 2714243
+
+Student 3
+Name: Ouail Zogari
+Student id: 2578310
+
+
+
 This project contains code for part 1 of the course Natural Language Processing Technology 2022 at VU Amsterdam put together by Lisa Beinborn.
 
 References:
