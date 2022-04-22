@@ -1,10 +1,3 @@
-# %%
-# Implement four baselines for the task.
-# Majority baseline: always assigns the majority class of the training data
-# Random baseline: randomly assigns one of the classes. Make sure to set a random seed and average the accuracy over 100 runs.
-# Length baseline: determines the class based on a length threshold
-# Frequency baseline: determines the class based on a frequency threshold
-
 from model.data_loader import DataLoader
 import spacy 
 import os
@@ -77,25 +70,196 @@ plt.show()
 
 ################################################################
 
+# %%
+# Implement four baselines for the task.
+# Majority baseline: always assigns the majority class of the training data
+# Random baseline: randomly assigns one of the classes. Make sure to set a random seed and average the accuracy over 100 runs.
+# Length baseline: determines the class based on a length threshold
+# Frequency baseline: determines the class based on a frequency threshold
 
 # Each baseline returns predictions for the test data. The length and frequency baselines determine a threshold using the development data.
 
-# def majority_baseline(train_sentences, train_labels, testinput, testlabels):
-#     predictions = []
 
-#     # TODO: determine the majority class based on the training data
-#     # ...
-#     majority_class = "X"
-#     predictions = []
-#     for instance in testinput:
-#         tokens = instance.split(" ")
-#         instance_predictions = [majority_class for t in tokens]
-#         predictions.append(instance, instance_predictions)
 
-#     # TODO: calculate accuracy for the test input
-#     # ...
-#     return accuracy, predictions
+# Import packages
+import os
+import numpy as np
+import torch
+import tabulate
+from tqdm import tqdm
+import nltk
+import pandas as pd
+import csv
+import spacy  
+from collections import Counter
+import random
 
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
+from nltk.corpus import brown
+from sklearn import metrics
+from nltk.tag import UnigramTagger
+import itertools 
+from itertools import chain
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+
+
+def majority_baseline(train_sentences, train_labels, testinput, testlabels):
+    predictions = []
+    instances = []  
+    word = ""    
+    words = [];
+
+    # TODO: determine the majority class based on the training data
+    for label in train_labels:  
+        label = label.replace("\n","")
+        for s in label.split(" "):
+            words.append(s);
+ 
+    for i in range(0, len(words)):  
+        count = 1 
+        maxCount = 0
+        for j in range(i+1, len(words)): 
+            if(words[i] == words[j]): 
+                count += count  
+        if(count > maxCount):
+            maxCount = count  
+            majority_class = words[i]
+    
+    
+    for instance in testinput:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        instance_predictions = [majority_class for t in tokens]
+        predictions.append(instance_predictions)
+        predictions = [val for sublist in predictions for val in sublist]   
+
+    for instance in testlabels:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        instances.append(tokens)
+        instances = [val for sublist in instances for val in sublist]
+        
+    cm = classification_report(instances, predictions, digits = 2)
+    
+    return cm
+    
+def Average(lst):
+    return sum(lst) / len(lst)
+  
+def random_baseline(train_sentence, train_labels, testinput, testlabels):
+    word = []
+    predictions = []
+    instances = []
+    
+    # TODO: determine the random class based on the training data
+    for label in train_labels:
+        label = label.replace("\n","")
+        for s in label.split(" "):
+            if s not in word:
+                word.append(s)
+    
+                
+    for i in range(100):            
+        predictions = []        
+        for instance in testinput:
+            instance = instance.replace("\n","")
+            tokens = instance.split(" ")
+            instance_predictions = [random.choice(word) for t in tokens]
+            predictions.append(instance_predictions)
+            predictions = [val for sublist in predictions for val in sublist]
+    
+        instances = []
+             
+        for instance in testlabels:
+            instance = instance.replace("\n","")
+            tokens = instance.split(" ")
+            instances.append(tokens)
+            instances = [val for sublist in instances for val in sublist]
+
+        cm = classification_report(instances, predictions, digits = 2)
+        
+    
+    return cm
+  
+  
+  def length_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 8):
+    
+    word = []
+    predictions = []
+    
+    for label in train_labels:
+        label = label.replace("\n","")
+        for s in label.split(" "):
+            if s not in word:
+                word.append(s)
+    
+    
+    for instance in testinput:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        instance_predictions = ["C" if len(t) >= threshold else "N" for t in tokens]
+        predictions.append(instance_predictions)
+        predictions = [val for sublist in predictions for val in sublist]
+        
+        instances = []
+    for instance in testlabels:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        instances.append(tokens)
+        instances = [val for sublist in instances for val in sublist]
+        
+
+    # TODO: calculate accuracy for the test input
+    cm = classification_report(instances, predictions, digits = 2)
+    
+    return cm
+
+  
+ def frequency_baseline(train_sentences, train_labels, testinput, testlabels, threshold = 25):
+    
+    word = []
+    predictions = []
+    
+    # TODO: determine the random class based on the training data
+    for label in train_labels:
+        label = label.replace("\n","")
+        for s in label.split(" "):
+            if s not in word:
+                word.append(s)
+    d = dict()
+
+    for line in testinput:
+        line = line.strip()
+        words = line.split(" ")
+        for word in words:
+            if word in d:
+                d[word] = d[word] + 1
+            else:
+                d[word] = 1
+                
+    for instance in testinput:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        tokenss = [sum(int(d[k]) for k in y.split()) for y in tokens]
+        instance_predictions = ["C" if t >= threshold else "N" for t in tokenss]
+        predictions.append(instance_predictions)
+        
+        instances = []
+    for instance in testlabels:
+        instance = instance.replace("\n","")
+        tokens = instance.split(" ")
+        instances.append(tokens)
+        predictions = [val for sublist in predictions for val in sublist]
+        instances = [val for sublist in instances for val in sublist]
+        
+
+    # TODO: calculate accuracy for the test input
+    cm = classification_report(instances, predictions, digits = 2)
+    
+    return cm
 
 
 if __name__ == '__main__':
@@ -105,23 +269,33 @@ if __name__ == '__main__':
 
     # Note: this loads all instances into memory. If you work with bigger files in the future, use an iterator instead.
 
-    with open(train_path + "/sentences.txt", encoding="utf8") as sent_file:
+    with open(train_path + "/sentences.txt", encoding= 'utf8') as sent_file:
         train_sentences = sent_file.readlines()
 
-    with open(train_path + "/labels.txt", encoding="utf8") as label_file:
+    with open(train_path + "/labels.txt", encoding= 'utf8') as label_file:
         train_labels = label_file.readlines()
 
     with open(val_path + "/sentences.txt", encoding="utf8") as val_file:
         val_sentences = val_file.readlines()
 
-    with open(train_path + "/labels.txt", encoding="utf8") as val_label_file:
+    with open(val_path + "/labels.txt", encoding="utf8") as val_label_file:
         val_labels = val_label_file.readlines()
+        
     with open(test_path + "/sentences.txt") as testfile:
         testinput = testfile.readlines()
 
     with open(test_path + "/labels.txt", encoding="utf8") as test_labelfile:
         testlabels = test_labelfile.readlines()
-   # majority_accuracy, majority_predictions = majority_baseline(train_sentences, train_labels, testinput)
+        
+    CM_majority = majority_baseline(train_sentences, train_labels, testinput, testlabels)
+    CM_random = random_baseline(train_sentences, train_labels, testinput, testlabels)
+    CM_length= length_baseline(train_sentences, train_labels, testinput, testlabels)
+    CM_frequency = frequency_baseline(train_sentences, train_labels, testinput, testlabels)
+
+    validation_CM_majority = majority_baseline(train_sentences, train_labels, val_sentences, val_labels)
+    validation_CM_random = random_baseline(train_sentences, train_labels, val_sentences, val_labels)
+    validation_CM_length = length_baseline(train_sentences, train_labels, val_sentences, val_labels)
+    validation_CM_frequency = frequency_baseline(train_sentences, train_labels, val_sentences, val_labels)
 
     # TODO: output the predictions in a suitable way so that you can evaluate them
 
